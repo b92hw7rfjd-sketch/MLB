@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB変換</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1c1c1e;
+    color: #f5f5f7;
+    font-family: -apple-system, sans-serif;
+    padding: 16px;
+    padding-bottom: 40px;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #f5f5f7;
+  }
+  .section {
+    background: #2c2c2e;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 12px;
+    color: #8e8e93;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .row:last-child { margin-bottom: 0; }
+  label {
+    font-size: 13px;
+    color: #8e8e93;
+    width: 60px;
+    flex-shrink: 0;
+  }
+  input[type="number"] {
+    background: #3a3a3c;
+    color: #f5f5f7;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 16px;
+    width: 100%;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .result {
+    background: #3a3a3c;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 16px;
+    color: #30d158;
+    min-width: 80px;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .arrow {
+    color: #48484a;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .rate-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .rate-label {
+    font-size: 13px;
+    color: #8e8e93;
+  }
+  #rate {
+    background: #3a3a3c;
+    color: #ffd60a;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 15px;
+    width: 80px;
+    outline: none;
+    -webkit-appearance: none;
+    text-align: center;
+  }
+  .rate-unit { font-size: 13px; color: #8e8e93; }
+
+  /* 身長用 */
+  .height-inputs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .height-inputs input {
+    width: 60px;
+  }
+  .height-inputs span {
+    color: #8e8e93;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<h1>⚾ MLB 変換</h1>
+
+<!-- 為替レート -->
+<div class="section">
+  <div class="section-title">💱 為替レート</div>
+  <div class="rate-row">
+    <span class="rate-label">1ドル =</span>
+    <input type="number" id="rate" value="153" oninput="updateAll()">
+    <span class="rate-unit">円</span>
+  </div>
+
+  <div class="row">
+    <label>ドル</label>
+    <input type="number" id="usd" placeholder="0" oninput="calcUSD()">
+    <span class="arrow">→</span>
+    <div class="result" id="jpy">—</div>
+    <span class="rate-unit">円</span>
+  </div>
+  <div class="row">
+    <label>円</label>
+    <input type="number" id="jpy_in" placeholder="0" oninput="calcJPY()">
+    <span class="arrow">→</span>
+    <div class="result" id="usd_out">—</div>
+    <span class="rate-unit">ドル</span>
+  </div>
+</div>
+
+<!-- 球速 -->
+<div class="section">
+  <div class="section-title">⚡ 球速</div>
+  <div class="row">
+    <label>mph</label>
+    <input type="number" id="mph" placeholder="0" oninput="calcMph()">
+    <span class="arrow">→</span>
+    <div class="result" id="kmh">—</div>
+    <span class="rate-unit">km/h</span>
+  </div>
+  <div class="row">
+    <label>km/h</label>
+    <input type="number" id="kmh_in" placeholder="0" oninput="calcKmh()">
+    <span class="arrow">→</span>
+    <div class="result" id="mph_out">—</div>
+    <span class="rate-unit">mph</span>
+  </div>
+</div>
+
+<!-- 身長 -->
+<div class="section">
+  <div class="section-title">📏 身長</div>
+  <div class="row">
+    <label>ft / in</label>
+    <div class="height-inputs">
+      <input type="number" id="ft" placeholder="6" oninput="calcHeight()">
+      <span>ft</span>
+      <input type="number" id="inch" placeholder="2" oninput="calcHeight()">
+      <span>in</span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="result" id="cm">—</div>
+    <span class="rate-unit">cm</span>
+  </div>
+</div>
+
+<!-- 体重 -->
+<div class="section">
+  <div class="section-title">⚖️ 体重</div>
+  <div class="row">
+    <label>lbs</label>
+    <input type="number" id="lbs" placeholder="0" oninput="calcWeight()">
+    <span class="arrow">→</span>
+    <div class="result" id="kg">—</div>
+    <span class="rate-unit">kg</span>
+  </div>
+  <div class="row">
+    <label>kg</label>
+    <input type="number" id="kg_in" placeholder="0" oninput="calcKg()">
+    <span class="arrow">→</span>
+    <div class="result" id="lbs_out">—</div>
+    <span class="rate-unit">lbs</span>
+  </div>
+</div>
+
+<script>
+  function getRate() { return parseFloat(document.getElementById('rate').value) || 153; }
+
+  function fmt(n, d=1) {
+    if (isNaN(n) || !isFinite(n)) return '—';
+    return n.toLocaleString('ja-JP', {maximumFractionDigits: d});
+  }
+
+  function calcUSD() {
+    const v = parseFloat(document.getElementById('usd').value);
+    document.getElementById('jpy').textContent = isNaN(v) ? '—' : fmt(v * getRate(), 0);
+  }
+  function calcJPY() {
+    const v = parseFloat(document.getElementById('jpy_in').value);
+    document.getElementById('usd_out').textContent = isNaN(v) ? '—' : fmt(v / getRate(), 2);
+  }
+  function calcMph() {
+    const v = parseFloat(document.getElementById('mph').value);
+    document.getElementById('kmh').textContent = isNaN(v) ? '—' : fmt(v * 1.60934);
+  }
+  function calcKmh() {
+    const v = parseFloat(document.getElementById('kmh_in').value);
+    document.getElementById('mph_out').textContent = isNaN(v) ? '—' : fmt(v / 1.60934);
+  }
+  function calcHeight() {
+    const ft = parseFloat(document.getElementById('ft').value) || 0;
+    const inch = parseFloat(document.getElementById('inch').value) || 0;
+    const cm = (ft * 30.48) + (inch * 2.54);
+    document.getElementById('cm').textContent = (ft || inch) ? fmt(cm, 1) : '—';
+  }
+  function calcWeight() {
+    const v = parseFloat(document.getElementById('lbs').value);
+    document.getElementById('kg').textContent = isNaN(v) ? '—' : fmt(v * 0.453592, 1);
+  }
+  function calcKg() {
+    const v = parseFloat(document.getElementById('kg_in').value);
+    document.getElementById('lbs_out').textContent = isNaN(v) ? '—' : fmt(v / 0.453592, 1);
+  }
+
+  function updateAll() { calcUSD(); calcJPY(); }
+</script>
+</body>
+</html>
